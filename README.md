@@ -1,2 +1,572 @@
-# Clock-In-Out-System-in-KMP
-Daily Attendance
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; }
+    
+    body { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      min-height: 100vh; 
+      margin: 0; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 15px;
+    }
+    
+    .main-card {
+      width: 100%;
+      max-width: 480px;
+      background: white;
+      border-radius: 30px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+      overflow: hidden;
+      animation: cardSlide 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    @keyframes cardSlide {
+      0% { transform: translateY(60px) scale(0.95); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    
+    .clock-section {
+      background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+      color: white;
+      padding: 30px 25px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .clock-section::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: clockGlow 4s linear infinite;
+    }
+    
+    @keyframes clockGlow {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    #clock { 
+      font-size: 3.2rem; 
+      font-weight: 900; 
+      font-family: 'Courier New', monospace; 
+      margin: 10px 0;
+      text-shadow: 0 0 30px rgba(255,255,255,0.8);
+      position: relative;
+      z-index: 2;
+      animation: clockPulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes clockPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .form-section {
+      padding: 35px 30px;
+    }
+    
+    .employee-select {
+      border-radius: 20px;
+      border: 3px solid #e9ecef;
+      padding: 18px 25px;
+      font-size: 17px;
+      font-weight: 700;
+      background: linear-gradient(145deg, #f8f9fa, #ffffff);
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    
+    .employee-select:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.3rem rgba(13,110,253,0.25), 0 10px 30px rgba(13,110,253,0.2);
+      transform: translateY(-3px) scale(1.02);
+    }
+    
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin: 35px 0;
+    }
+    
+    .action-btn {
+      border: none;
+      border-radius: 25px;
+      padding: 22px 15px;
+      font-weight: 800;
+      font-size: 16px;
+      height: 95px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      cursor: pointer;
+    }
+    
+    .action-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      transition: left 0.6s;
+      z-index: 1;
+    }
+    
+    .action-btn:hover::before {
+      left: 100%;
+    }
+    
+    .action-btn:hover:not(.active) {
+      transform: translateY(-12px) rotateX(10deg);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    }
+    
+    .btn-clockin {
+      background: linear-gradient(145deg, #e3f2fd, #bbdefb);
+      color: #1976d2;
+    }
+    
+    .btn-clockin.active {
+      background: linear-gradient(135deg, #2196f3, #0d47a1) !important;
+      color: white !important;
+      transform: translateY(-15px) scale(1.1) !important;
+      box-shadow: 0 20px 60px rgba(33, 150, 243, 0.6) !important;
+      animation: bluePulse 1.5s infinite;
+    }
+    
+    @keyframes bluePulse {
+      0%, 100% { box-shadow: 0 20px 60px rgba(33, 150, 243, 0.6); }
+      50% { box-shadow: 0 25px 80px rgba(33, 150, 243, 0.9); }
+    }
+    
+    .btn-clockout {
+      background: linear-gradient(145deg, #ffebee, #ffcdd2);
+      color: #c62828;
+    }
+    
+    .btn-clockout.active {
+      background: linear-gradient(135deg, #f44336, #b71c1c) !important;
+      color: white !important;
+      transform: translateY(-15px) scale(1.1) !important;
+      box-shadow: 0 20px 60px rgba(244, 67, 54, 0.7) !important;
+      animation: redPulse 1.5s infinite;
+    }
+    
+    @keyframes redPulse {
+      0%, 100% { box-shadow: 0 20px 60px rgba(244, 67, 54, 0.7); }
+      50% { box-shadow: 0 25px 80px rgba(244, 67, 54, 1); }
+    }
+    
+    .btn-absent {
+      background: linear-gradient(145deg, #fffde7, #fff9c4);
+      color: #f57f17;
+    }
+    
+    .btn-absent.active {
+      background: linear-gradient(135deg, #ff9800, #e65100) !important;
+      color: white !important;
+      transform: translateY(-15px) scale(1.1) !important;
+      box-shadow: 0 20px 60px rgba(255, 152, 0, 0.7) !important;
+      animation: yellowPulse 1.5s infinite;
+    }
+    
+    @keyframes yellowPulse {
+      0%, 100% { box-shadow: 0 20px 60px rgba(255, 152, 0, 0.7); }
+      50% { box-shadow: 0 25px 80px rgba(255, 152, 0, 1); }
+    }
+    
+    .reason-box {
+      border-radius: 25px;
+      border: 3px solid #e9ecef;
+      padding: 22px 25px;
+      font-size: 16px;
+      resize: vertical;
+      min-height: 110px;
+      background: linear-gradient(145deg, #f8f9fa, #ffffff);
+      transition: all 0.4s ease;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .reason-box:focus {
+      border-color: #ff9800;
+      box-shadow: 0 0 0 0.3rem rgba(255,152,0,0.25), 0 15px 40px rgba(255,152,0,0.2);
+      transform: translateY(-5px);
+    }
+    
+    #submitBtn {
+      border-radius: 30px;
+      padding: 22px 40px;
+      font-size: 20px;
+      font-weight: 900;
+      height: 75px;
+      margin-top: 30px;
+      background: linear-gradient(135deg, #28a745, #20c997);
+      border: none;
+      box-shadow: 0 10px 30px rgba(40,167,74,0.4);
+      transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    #submitBtn:not(:disabled):hover {
+      transform: translateY(-8px) scale(1.05);
+      box-shadow: 0 25px 60px rgba(40,167,74,0.6);
+    }
+    
+    .success-screen {
+      padding: 60px 40px;
+      text-align: center;
+      background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    }
+    
+    .success-icon {
+      font-size: 6rem;
+      color: #28a745;
+      margin-bottom: 30px;
+      animation: successBounce 2s ease-in-out infinite;
+    }
+    
+    @keyframes successBounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0) rotate(0deg); }
+      40% { transform: translateY(-30px) rotate(5deg); }
+      60% { transform: translateY(-15px) rotate(-5deg); }
+    }
+    
+    .countdown {
+      background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.8));
+      border-radius: 50px;
+      padding: 20px 40px;
+      font-weight: 900;
+      font-size: 24px;
+      color: #28a745;
+      margin: 40px 0;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+      animation: countdownGlow 1s ease-in-out infinite alternate;
+    }
+    
+    @keyframes countdownGlow {
+      from { box-shadow: 0 15px 40px rgba(40,167,74,0.4); }
+      to { box-shadow: 0 15px 40px rgba(40,167,74,0.7); }
+    }
+    
+    .hidden { display: none !important; }
+    
+    @media (max-width: 500px) {
+      .action-buttons { grid-template-columns: 1fr; gap: 15px; }
+      #clock { font-size: 2.5rem; }
+      .form-section { padding: 25px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-card">
+    <!-- Clock Header -->
+    <div class="clock-section">
+      <div id="date" class="h6 mb-2 fw-bold"></div>
+      <div id="clock">00:00:00</div>
+      <div id="day" class="h6 fw-bold mb-3"></div>
+      <div id="location-display" class="small px-4 py-2 rounded-pill bg-white bg-opacity-20">📍 Loading GPS...</div>
+    </div>
+    
+    <!-- Main Form -->
+    <div id="mainForm" class="form-section">
+      <label class="form-label fs-4 fw-bold mb-4 text-center">
+        👤 Select Employee
+      </label>
+      <select id="employeeSelect" class="form-select employee-select mb-5">
+        <option value="">-- Choose Employee Name --</option>
+        <option value="Employee A">👨‍💼 Employee A</option>
+        <option value="Employee B">👨‍💼 Employee B</option>
+        <option value="Employee C">👨‍💼 Employee C</option>
+        <option value="Employee D">👩‍💼 Employee D</option>
+      </select>
+      
+      <div class="action-buttons">
+        <button class="btn action-btn btn-clockin" onclick="selectAction('Clock In')">
+          <i class="fas fa-sign-in-alt fa-2x d-block mb-2"></i>
+          <div>CLOCK</div>
+          <div class="fw-bold fs-6 mt-1">IN</div>
+        </button>
+        
+        <button class="btn action-btn btn-clockout" onclick="selectAction('Clock Out')">
+          <i class="fas fa-sign-out-alt fa-2x d-block mb-2"></i>
+          <div>CLOCK</div>
+          <div class="fw-bold fs-6 mt-1">OUT</div>
+        </button>
+        
+        <button class="btn action-btn btn-absent" onclick="selectAction('Absent')">
+          <i class="fas fa-user-slash fa-2x d-block mb-2"></i>
+          <div class="fw-bold fs-6 mt-1">ABSENT</div>
+        </button>
+      </div>
+      
+      <div id="reasonContainer" class="hidden mb-4">
+        <label class="form-label fs-5 fw-bold mb-3">
+          📝 Reason for Absence <span class="text-danger">*</span>
+        </label>
+        <textarea id="reasonInput" class="form-control reason-box" 
+                  placeholder="Please provide detailed reason for your absence..."></textarea>
+      </div>
+      
+      <button id="submitBtn" class="btn w-100 shadow-lg" disabled>
+        <i class="fas fa-circle-notch fa-spin me-2 hidden"></i>
+        <i class="fas fa-paper-plane me-2"></i>
+        <strong>Select Action First</strong>
+      </button>
+    </div>
+    
+    <!-- Success Screen -->
+    <div id="successScreen" class="success-screen hidden">
+      <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h3 class="mb-4 fw-bold text-success fs-2">✅ Successfully Saved!</h3>
+      <div id="successDetails" class="mb-5 p-4 bg-white rounded-4 shadow-lg"></div>
+      <div id="countdown" class="countdown">
+        Auto Reset in <span id="countdownNum">10</span>s
+      </div>
+      <button class="btn btn-success btn-lg w-100 mt-4 shadow-lg px-5 py-3 fs-5" onclick="resetToHome()">
+        <i class="fas fa-home me-3"></i>
+        <strong>Return Home</strong>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let selectedAction = '';
+    let geoLocation = 'Loading GPS coordinates...';
+    let countdownTimer;
+    
+    // 🔥 LIVE CLOCK
+    // System date dynamically tracks the active session timeline
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString([], {hour12: false});
+      document.getElementById('date').textContent = now.toLocaleDateString('en-GB');
+      document.getElementById('day').textContent = now.toLocaleDateString('en-US', {weekday: 'long'});
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+    
+    // 📍 GPS Location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          geoLocation = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+          document.getElementById('location-display').innerHTML = `📍 ${geoLocation}`;
+        },
+        () => {
+          document.getElementById('location-display').textContent = '📍 GPS Disabled';
+          geoLocation = 'GPS Disabled';
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    } else {
+      geoLocation = 'GPS Not Supported';
+      document.getElementById('location-display').textContent = '📍 GPS Not Supported';
+    }
+    
+    // 🎯 SELECT ACTION
+    function selectAction(action) {
+      document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      event.target.closest('.action-btn').classList.add('active');
+      selectedAction = action;
+      
+      document.getElementById('reasonContainer').classList.toggle('hidden', action !== 'Absent');
+      
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = false;
+      
+      if (action === 'Clock In') {
+        submitBtn.style.background = 'linear-gradient(135deg, #2196f3, #0d47a1)';
+        submitBtn.innerHTML = '<i class="fas fa-check-double me-2"></i><strong>CONFIRM CLOCK IN</strong>';
+      } else if (action === 'Clock Out') {
+        submitBtn.style.background = 'linear-gradient(135deg, #f44336, #b71c1c)';
+        submitBtn.innerHTML = '<i class="fas fa-check-double me-2"></i><strong>CONFIRM CLOCK OUT</strong>';
+      } else {
+        submitBtn.style.background = 'linear-gradient(135deg, #ff9800, #e65100)';
+        submitBtn.innerHTML = '<i class="fas fa-check-double me-2"></i><strong>CONFIRM ABSENT</strong>';
+      }
+      
+      if (action === 'Absent') {
+        setTimeout(() => document.getElementById('reasonInput').focus(), 400);
+      }
+    }
+    
+    // 🔔 CUSTOM ALERT
+    function showCustomAlert(msg, type) {
+      const alert = document.createElement('div');
+      alert.className = 'position-fixed bottom-0 end-0 p-4 m-4 rounded-4 shadow-lg z-5';
+      alert.style.cssText = `
+        font-weight: bold;
+        font-size: 16px;
+        max-width: 350px;
+        animation: slideInRight 0.5s ease-out;
+        background: ${type === 'danger' ? '#f8d7da' : '#fff3cd'};
+        color: ${type === 'danger' ? '#721c24' : '#856404'};
+        border: 2px solid ${type === 'danger' ? '#dc3545' : '#ffc107'};
+      `;
+      alert.textContent = msg;
+      document.body.appendChild(alert);
+      
+      setTimeout(() => {
+        alert.style.animation = 'slideOutRight 0.5s ease-out forwards';
+        setTimeout(() => alert.remove(), 500);
+      }, 4000);
+      
+      if (!document.getElementById('alertStyles')) {
+        const style = document.createElement('style');
+        style.id = 'alertStyles';
+        style.textContent = `
+          @keyframes slideInRight {
+            from { transform: translateX(100%) translateY(0); opacity: 0; }
+            to { transform: translateX(0) translateY(0); opacity: 1; }
+          }
+          @keyframes slideOutRight {
+            to { transform: translateX(100%) translateY(0); opacity: 0; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+    
+    // 📤 SUBMIT FORM - RECONFIGURED FOR EXTERNAL API FETCH REQUEST
+    document.getElementById('submitBtn').onclick = function() {
+      const name = document.getElementById('employeeSelect').value;
+      const reason = document.getElementById('reasonInput').value.trim();
+      
+      if (!name) {
+        showCustomAlert('❌ Select Employee First!', 'danger');
+        return;
+      }
+      if (!selectedAction) {
+        showCustomAlert('❌ Select Action First!', 'warning');
+        return;
+      }
+      if (selectedAction === 'Absent' && !reason) {
+        showCustomAlert('❌ Reason Required!', 'danger');
+        return;
+      }
+      
+      this.disabled = true;
+      this.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i><strong>SAVING...</strong>';
+      
+      const payload = {
+        name: name,
+        action: selectedAction,
+        reason: reason || 'N/A',
+        location: 'Live Location',
+        geo: geoLocation
+      };
+      
+      // Target deployment API URL provided by user
+      const webAppUrl = "https://script.google.com/macros/s/AKfycbwBoHZjeSQOuf7ZIrX4RwSRXKxeHzTjGrr7vxa206RK0eHH6RwurWsjr3uoxQm6zrNE/exec";
+      
+      // Post transaction request handling cross-origin limits via text/plain fallback injection
+      fetch(webAppUrl, {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Server returned network status ' + response.status);
+        }
+        return response.json();
+      })
+      .then(data => {
+        showSuccess(data);
+      })
+      .catch(error => {
+        showError(error);
+      });
+    };
+    
+    // ✅ SUCCESS HANDLER
+    function showSuccess(response) {
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i><strong>Select Action First</strong>';
+      
+      if (response.status === "Error") {
+        showCustomAlert(response.details, 'danger');
+        resetForm();
+        return;
+      }
+      
+      document.getElementById('mainForm').classList.add('hidden');
+      document.getElementById('successScreen').classList.remove('hidden');
+      
+      document.getElementById('successDetails').innerHTML = `
+        <div class="fw-bold fs-4 mb-4 text-success">${response.details || 'Check-in entry recorded successfully!'}</div>
+        <div class="small text-muted p-4 bg-light rounded-4 text-start">
+          📍 <strong>GPS:</strong> ${geoLocation}<br>
+          🕒 <strong>Time:</strong> ${new Date().toLocaleString('en-GB')}<br>
+          ✅ Saved securely to Attendance Sheet!
+        </div>
+      `;
+      
+      let count = 10;
+      document.getElementById('countdownNum').textContent = count;
+      countdownTimer = setInterval(() => {
+        count--;
+        document.getElementById('countdownNum').textContent = count;
+        if (count <= 0) {
+          clearInterval(countdownTimer);
+          resetToHome();
+        }
+      }, 1000);
+    }
+    
+    // ❌ ERROR HANDLER
+    function showError(error) {
+      showCustomAlert('Submission Failure: ' + error.message, 'danger');
+      resetForm();
+    }
+    
+    // 🏠 RESET TO HOME
+    function resetToHome() {
+      clearInterval(countdownTimer);
+      document.getElementById('successScreen').classList.add('hidden');
+      document.getElementById('mainForm').classList.remove('hidden');
+      resetForm();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // 🔄 RESET FORM
+    function resetForm() {
+      document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      selectedAction = '';
+      document.getElementById('reasonContainer').classList.add('hidden');
+      document.getElementById('employeeSelect').value = '';
+      document.getElementById('reasonInput').value = '';
+      
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+      submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i><strong>Select Action First</strong>';
+    }
+  </script>
+</body>
+</html>
